@@ -1,0 +1,225 @@
+// 2.1.A.1
+document.querySelector("h1").textContent = "Библиотека колледжа";
+
+// 2.1.A.2
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// 2.1.A.3
+const auth = document.getElementById("auth");
+auth.textContent = "Здравствуйте, Анна!";
+auth.insertAdjacentHTML("beforeend", '<a href="#">Выйти</a>');
+
+// 2.1.A.4
+// Вариант через textContent: теги <b> выводятся как обычный текст (экранируются).
+auth.textContent = "Здравствуйте, <b>Анна</b>!";
+auth.insertAdjacentHTML("beforeend", '<a href="#">Выйти</a>');
+// Вариант через innerHTML: теги <b> разбираются браузером как разметка (Анна становится жирной).
+auth.innerHTML = "Здравствуйте, <b>Анна</b>!";
+auth.insertAdjacentHTML("beforeend", '<a href="#">Выйти</a>');
+
+// 2.2.A.1
+document.querySelectorAll("th[data-sort]").forEach(th => console.log(th.dataset.sort));
+
+// 2.2.A.2
+document.querySelectorAll(".take").forEach(btn => {
+  btn.title = btn.disabled ? "Книга выдана" : "Взять книгу";
+});
+
+// 2.2.A.3
+const row6 = document.querySelector('tr[data-id="6"]');
+row6.dataset.available = "true";
+const btn6 = row6.querySelector(".take");
+btn6.disabled = false;
+btn6.textContent = "Взять";
+
+// 2.2.B
+const row1 = document.querySelector('tr[data-id="1"]');
+const dsObj = { ...row1.dataset };
+function castTypes(obj) {
+  const result = {};
+  for (const key in obj) {
+    let val = obj[key];
+    if (val === "true") val = true;
+    else if (val === "false") val = false;
+    else if (!isNaN(val) && val.trim() !== "") val = Number(val);
+    result[key] = val;
+  }
+  return result;
+}
+console.log(castTypes(dsObj));
+
+// 2.3.A.1
+document.querySelectorAll("tbody tr.book").forEach(tr => {
+  const rating = Number(tr.querySelector(".rating").textContent);
+  if (rating >= 4.5) tr.classList.add("highlight");
+});
+
+// 2.3.A.2
+const loginSec = document.getElementById("login");
+loginSec.classList.remove("hidden"); // показать
+loginSec.classList.add("hidden");    // скрыть
+
+// 2.3.A.3
+const firstRow = document.querySelector("tbody tr.book");
+console.log(firstRow.classList.contains("highlight"), firstRow.className);
+
+// 2.3.A.4
+document.querySelectorAll('tr[data-available="false"]').forEach(tr => {
+  tr.style.opacity = "0.5";
+  tr.style.removeProperty("opacity");
+});
+
+// 2.3.B
+const style = document.createElement("style");
+style.textContent = ".odd { background: #f4f4f4 }";
+document.head.append(style);
+document.querySelectorAll("tbody tr.book").forEach((tr, index) => {
+  if ((index + 1) % 2 !== 0) tr.classList.add("odd");
+});
+
+// 2.4.A.1
+const myList = document.getElementById("my-list");
+const li1 = document.createElement("li");
+li1.textContent = "Гиперион";
+myList.append(li1);
+
+// 2.4.A.2
+const li2 = document.createElement("li");
+li2.textContent = "Война и мир";
+myList.prepend(li2);
+
+// 2.4.A.3
+const li3 = document.createElement("li");
+li3.textContent = "Собачье сердце";
+myList.firstElementChild.after(li3);
+
+// 2.4.A.4
+myList.lastElementChild.remove();
+
+// 2.4.A.5
+const li5 = document.createElement("li");
+li5.textContent = "Солярис";
+myList.children[1].replaceWith(li5);
+
+// 2.4.A.6
+const cloneRow = document.querySelector("tbody tr.book").cloneNode(true);
+cloneRow.dataset.id = "7";
+cloneRow.querySelector(".title").textContent = "Копия";
+document.querySelector("tbody").append(cloneRow);
+
+// 2.4.B
+myList.insertAdjacentHTML("beforebegin", "<p>beforebegin</p>");
+myList.insertAdjacentHTML("afterbegin", "<li>afterbegin</li>");
+myList.insertAdjacentHTML("beforeend", "<li>beforeend</li>");
+myList.insertAdjacentHTML("afterend", "<p>afterend</p>");
+
+// 2.5.A
+function createRow(book) {
+  const tr = document.createElement("tr");
+  tr.className = "book";
+  tr.dataset.id = book.id;
+  tr.dataset.genre = book.genre;
+  tr.dataset.available = book.available;
+  
+  tr.innerHTML = `
+    <td class="title"></td>
+    <td class="author"></td>
+    <td class="year"></td>
+    <td class="genre"></td>
+    <td class="rating"></td>
+    <td><button class="take" type="button"></button></td>
+  `;
+  
+  // textContent защищает от XSS (теги вроде <i> выводятся как текст)
+  tr.querySelector(".title").textContent = book.title;
+  tr.querySelector(".author").textContent = book.author;
+  tr.querySelector(".year").textContent = book.year;
+  tr.querySelector(".genre").textContent = book.genre;
+  tr.querySelector(".rating").textContent = book.rating;
+  
+  const btn = tr.querySelector(".take");
+  btn.textContent = book.available ? "Взять" : "Выдана";
+  btn.disabled = !book.available;
+  
+  return tr;
+}
+
+function renderCatalog(list) {
+  const tbody = document.querySelector("#books tbody");
+  tbody.replaceChildren(...list.map(createRow));
+}
+
+renderCatalog(books);
+renderCatalog(books.filter(b => b.available));
+renderCatalog(books.filter(b => b.genre === "Роман"));
+renderCatalog([...books].sort((a, b) => b.year - a.year));
+renderCatalog([]);
+renderCatalog([{ id: 100, title: "<i>Тест</i>", author: "Автор", year: 2026, genre: "Роман", available: true, rating: 5 }]);
+
+// 2.5.B
+function createRowB(book) {
+  const tr = createRow(book);
+  const ratingCell = tr.querySelector(".rating");
+  const rating = book.rating || 0;
+  
+  const stars = "★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
+  ratingCell.textContent = stars;
+  ratingCell.dataset.value = rating;
+  
+  if (rating >= 4.7) ratingCell.classList.add("top");
+  return tr;
+}
+
+function renderCatalogB(list) {
+  const tbody = document.querySelector("#books tbody");
+  tbody.replaceChildren(...list.map(createRowB));
+}
+// Проверка:
+renderCatalogB(books);
+
+// 2.6.A
+function renderMyBooks(userId) {
+  const myList = document.getElementById("my-list");
+  const activeLoans = loans.filter(l => l.userId === userId && l.returnedAt === null);
+  
+  const items = activeLoans.map(l => {
+    const book = books.find(b => b.id === l.bookId);
+    const li = document.createElement("li");
+    li.textContent = `${book.title} — взята ${l.takenAt}`;
+    return li;
+  });
+  
+  myList.replaceChildren(...items);
+}
+renderMyBooks(1);
+// renderMyBooks(2);
+// renderMyBooks(99);
+
+// 2.6.B
+function renderHistory(userId) {
+  const myList = document.getElementById("my-list");
+  
+  const oldH3 = document.querySelector("h3:has(+ #history)");
+  if (oldH3) oldH3.nextElementSibling.remove(), oldH3.remove();
+
+  const h3 = document.createElement("h3");
+  h3.textContent = "История";
+  const ul = document.createElement("ul");
+  ul.id = "history";
+
+  myList.after(h3, ul);
+
+  const returnedLoans = loans.filter(l => l.userId === userId && l.returnedAt !== null);
+  
+  const items = returnedLoans.map(l => {
+    const book = books.find(b => b.id === l.bookId);
+    const li = document.createElement("li");
+    const rating = l.rating || 0;
+    const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+    li.textContent = `${book.title} — ${stars}`;
+    return li;
+  });
+
+  ul.replaceChildren(...items);
+}
+renderHistory(1);
